@@ -1,16 +1,15 @@
-'use client'
+"use client";
 
 import { useEffect } from "react";
 
 export default function Home() {
-
   useEffect(() => {
-    main()
+    main();
   }, []);
 
   const main = () => {
-    const canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById("myCanvas") as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d");
     if (!ctx) {
       return;
     }
@@ -22,7 +21,12 @@ export default function Home() {
     let drawing = false;
     let initialX = 0;
     let initialY = 0;
-    const rectangles: { x: number; y: number; height: number; width: number }[] = [];
+    const rectangles: {
+      x: number;
+      y: number;
+      height: number;
+      width: number;
+    }[] = [];
 
     const startDrawing = (e: MouseEvent) => {
       const { clientX, clientY } = e;
@@ -34,93 +38,87 @@ export default function Home() {
     const draw = (e: MouseEvent) => {
       if (!drawing) return;
       const { clientX, clientY } = e;
-      let dynamicHeight = clientY - initialY; // Ajustar la altura dinámicamente
+      let dynamicHeight = clientY - initialY;
       let dynamicWidth = clientX - initialX;
 
-      // Asegurar que la altura sea al menos 50 píxeles
       if (Math.abs(dynamicHeight) < 140) {
         dynamicHeight = dynamicHeight < 0 ? -140 : 140;
       }
-      // Limpiar el canvas antes de dibujar
+      if (Math.abs(dynamicWidth) < 140) {
+        dynamicWidth = dynamicWidth < 0 ? -140 : 140;
+      }
+
+      const width = Math.abs(dynamicWidth);
+      const height = Math.abs(dynamicHeight);
+
+      const x = dynamicWidth < 0 ? initialX - width : initialX;
+      const y = dynamicHeight < 0 ? initialY - height : initialY;
+
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
-      // Redibujar todos los rectángulos anteriores
-      rectangles.forEach(rect => {
+      rectangles.forEach((rect) => {
         ctx.beginPath();
         ctx.moveTo(rect.x - space, rect.y);
-        ctx.lineTo(rect.x + space, rect.y);
-        ctx.lineTo(rect.x + space, rect.y + rect.height);
+        ctx.lineTo(rect.x + rect.width - space, rect.y);
+        ctx.lineTo(rect.x + rect.width - space, rect.y + rect.height);
         ctx.lineTo(rect.x - space, rect.y + rect.height);
         ctx.lineTo(rect.x - space, rect.y);
         ctx.stroke();
 
-        ctx.fillText(`${rect.height}px`, rect.x + space + 5, rect.y + rect.height / 2);
+        ctx.fillText(
+          `${rect.height}px`,
+          rect.x + rect.width - space + 5,
+          rect.y + rect.height / 2,
+        );
         ctx.fillText(`${rect.width}px`, rect.x - space / 2, rect.y - 5);
       });
 
-      // Dibujar el rectángulo actual
       ctx.beginPath();
-      ctx.moveTo(initialX - space, initialY);
-      ctx.lineTo(initialX + space, initialY);
-      ctx.lineTo(initialX + space, initialY + dynamicHeight);
-      ctx.lineTo(initialX - space, initialY + dynamicHeight);
-      ctx.lineTo(initialX - space, initialY);
+      ctx.moveTo(x - space, y);
+      ctx.lineTo(x + width - space, y);
+      ctx.lineTo(x + width - space, y + height);
+      ctx.lineTo(x - space, y + height);
+      ctx.lineTo(x - space, y);
       ctx.stroke();
 
-       // Dibujar la rama del rectángulo principal
-       if (Math.abs(dynamicWidth) > 0) {
-        ctx.beginPath();
-        ctx.moveTo(initialX, initialY + dynamicHeight / 2);
-        ctx.lineTo(initialX + dynamicWidth, initialY + dynamicHeight / 2);
-        ctx.lineTo(initialX + dynamicWidth, initialY + dynamicHeight / 2 + dynamicHeight);
-        ctx.lineTo(initialX, initialY + dynamicHeight / 2 + dynamicHeight);
-        ctx.lineTo(initialX, initialY + dynamicHeight / 2);
-        ctx.stroke();
-
-        // Agregar medidas a la rama
-        ctx.fillText(`${dynamicHeight}px`, initialX + dynamicWidth + 5, initialY + dynamicHeight / 2 + dynamicHeight / 2);
-        ctx.fillText(`${Math.abs(dynamicWidth)}px`, initialX + dynamicWidth / 2, initialY + dynamicHeight / 2 - 5);
-      }
-
-      ctx.fillText(`${dynamicHeight}px`, initialX + space + 5, initialY + dynamicHeight / 2);
-      ctx.fillText(`${space * 2}px`, initialX - space / 2, initialY - 5);
+      ctx.fillText(`${height}px`, x + width - space + 5, y + height / 2);
+      ctx.fillText(`${width}px`, x - space / 2, y - 5);
     };
 
     const stopDrawing = (e: MouseEvent) => {
       if (drawing) {
-        const { clientY } = e;
+        const { clientX, clientY } = e;
         let dynamicHeight = clientY - initialY;
+        let dynamicWidth = clientX - initialX;
 
-        if (Math.abs(dynamicHeight) < 1400) {
+        if (Math.abs(dynamicHeight) < 140) {
           dynamicHeight = dynamicHeight < 0 ? -140 : 140;
         }
+        if (Math.abs(dynamicWidth) < 140) {
+          dynamicWidth = dynamicWidth < 0 ? -140 : 140;
+        }
 
-        rectangles.push({ x: initialX, y: initialY, height: dynamicHeight, width: space * 2 });
+        const height = Math.abs(dynamicHeight);
+        const width = Math.abs(dynamicWidth);
+
+        const x = dynamicWidth < 0 ? initialX - width : initialX;
+        const y = dynamicHeight < 0 ? initialY - height : initialY;
+
+        rectangles.push({ x, y, height, width });
       }
       drawing = false;
       ctx.closePath();
     };
 
-    canvas.addEventListener('mousedown', startDrawing);
-    canvas.addEventListener('mousemove', draw);
-    canvas.addEventListener('mouseup', stopDrawing);
-    canvas.addEventListener('mouseout', stopDrawing);
-
-  }
-
-
-  const handleClick = (e: any, ctx: CanvasRenderingContext2D) => {
-    console.log('click', e);
-    ctx.beginPath();
-    ctx.moveTo(e.clientX, e.clientY);
-    ctx.lineTo(e.clientX + 100, e.clientY + 100);
-    ctx.stroke();
-    ctx.closePath();
-  }
+    canvas.addEventListener("mousedown", startDrawing);
+    canvas.addEventListener("mousemove", draw);
+    canvas.addEventListener("mouseup", stopDrawing);
+    canvas.addEventListener("mouseout", stopDrawing);
+  };
 
   return (
     <main>
-      <canvas id="myCanvas" onResize={() => console.log('resize')}></canvas>
+      <canvas id="myCanvas"></canvas>
     </main>
   );
 }
