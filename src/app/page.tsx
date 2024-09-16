@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
-  const MIN_SIZE = 10;
+  const MIN_SIZE = 50;
   const space = 0;
 
   const [rectangles, setRectangles] = useState<
@@ -26,6 +26,8 @@ export default function Home() {
     id: -1,
     width: MIN_SIZE,
     height: MIN_SIZE,
+    x: -1,
+    y: -1,
   });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   let hasDragged = false;
@@ -146,7 +148,7 @@ export default function Home() {
     canvas.addEventListener("mousedown", startDrawing);
     canvas.addEventListener("mousemove", draw);
     canvas.addEventListener("mouseup", stopDrawing);
-    canvas.addEventListener("click", handleClick);
+    canvas.addEventListener("dblclick", handleClick);
     canvas.addEventListener("contextmenu", handleContextMenu);
 
     drawAllRectangles();
@@ -155,7 +157,7 @@ export default function Home() {
       canvas.removeEventListener("mousedown", startDrawing);
       canvas.removeEventListener("mousemove", draw);
       canvas.removeEventListener("mouseup", stopDrawing);
-      canvas.removeEventListener("click", handleClick);
+      canvas.removeEventListener("dblclick", handleClick);
       canvas.removeEventListener("contextmenu", handleContextMenu);
     };
   }, [isDrawing, rectangles, dragDirection]);
@@ -178,8 +180,8 @@ export default function Home() {
     ctx.lineTo(x - space, y + height);
     ctx.lineTo(x - space, y);
     ctx.stroke();
-    ctx.fillText(`${height}px`, x + width - space + 5, y + height / 2);
-    ctx.fillText(`${width}px`, x - space / 2, y - 5);
+    ctx.fillText(`${height} in`, x + width - space + 5, y + height / 2);
+    ctx.fillText(`${width} in`, x - space / 2, y - 5);
   };
 
   const drawRectangles = (ctx: CanvasRenderingContext2D) => {
@@ -205,7 +207,13 @@ export default function Home() {
         y >= heightTextY - 8 &&
         y <= heightTextY + 8
       ) {
-        setModalContent({ id: index, width: rect.width, height: rect.height });
+        setModalContent({
+          id: index,
+          width: rect.width,
+          height: rect.height,
+          x: rect.x,
+          y: rect.y,
+        });
         setModalVisible(true);
       }
 
@@ -215,7 +223,13 @@ export default function Home() {
         y >= widthTextY - 8 &&
         y <= widthTextY + 8
       ) {
-        setModalContent({ id: index, width: rect.width, height: rect.height });
+        setModalContent({
+          id: index,
+          width: rect.width,
+          height: rect.height,
+          x: rect.x,
+          y: rect.y,
+        });
         setModalVisible(true);
       }
     });
@@ -249,6 +263,8 @@ export default function Home() {
                 ...rect,
                 width: modalContent.width,
                 height: modalContent.height,
+                x: modalContent.x,
+                y: modalContent.y,
               }
             : rect,
         ),
@@ -273,6 +289,8 @@ export default function Home() {
         id: contextMenuContent.id,
         width: rect.width,
         height: rect.height,
+        x: rect.x,
+        y: rect.y,
       });
       setContextMenuVisible(false);
       setModalVisible(true);
@@ -305,6 +323,30 @@ export default function Home() {
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-xl font-bold mb-4">Edit Rectangle</h2>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Pos. X:
+                <input
+                  type="number"
+                  name="x"
+                  value={modalContent.x}
+                  onChange={handleInputChange}
+                  className="ml-2 border border-gray-300 p-1"
+                />
+              </label>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                Pos. Y:
+                <input
+                  type="number"
+                  name="y"
+                  value={modalContent.y}
+                  onChange={handleInputChange}
+                  className="ml-2 border border-gray-300 p-1"
+                />
+              </label>
+            </div>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">
                 Width:
@@ -381,6 +423,139 @@ export default function Home() {
           </ul>
         </div>
       )}
+
+      {/* Context Controls */}
+      <div
+        className="fixed bottom-4 right-4 flex items-center justify-center"
+        style={{
+          width: "150px",
+          height: "150px",
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          zIndex: 1000,
+        }}
+      >
+        {/* Botón Abajo */}
+        <div
+          className="absolute bg-gray-400 opacity-60 rounded-full"
+          style={{
+            bottom: "0",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "60px",
+            height: "60px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="white"
+            className="h-8 w-8"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19.5 8.25L12 15.75 4.5 8.25"
+            />
+          </svg>
+        </div>
+
+        {/* Botón Izquierda */}
+        <div
+          className="absolute bg-gray-400 opacity-60 rounded-full"
+          style={{
+            left: "0",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "60px",
+            height: "60px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="white"
+            className="h-8 w-8"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M15.75 19.5l-7.5-7.5 7.5-7.5"
+            />
+          </svg>
+        </div>
+
+        {/* Botón Arriba */}
+        <div
+          className="absolute bg-gray-400 opacity-60 rounded-full"
+          style={{
+            top: "0",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "60px",
+            height: "60px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="white"
+            className="h-8 w-8"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4.5 15.75l7.5-7.5 7.5 7.5"
+            />
+          </svg>
+        </div>
+
+        {/* Botón Derecha */}
+        <div
+          className="absolute bg-gray-400 opacity-60 rounded-full"
+          style={{
+            right: "0",
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: "60px",
+            height: "60px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="white"
+            className="h-8 w-8"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M8.25 4.5l7.5 7.5-7.5 7.5"
+            />
+          </svg>
+        </div>
+      </div>
     </main>
   );
 }
