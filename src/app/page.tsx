@@ -34,6 +34,8 @@ export default function Home() {
   const [dragDirection, setDragDirection] = useState<
     "horizontal" | "vertical" | null
   >(null);
+  const [directionX, setDirectionX] = useState<0 | 1>(0);
+  const [directionY, setDirectionY] = useState<0 | 1>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -80,6 +82,18 @@ export default function Home() {
         }
       }
 
+      if (x < initialPos.x) {
+        setDirectionX(1);
+      } else {
+        setDirectionX(0);
+      }
+
+      if (y < initialPos.y) {
+        setDirectionY(1);
+      } else {
+        setDirectionY(0);
+      }
+
       let dynamicWidth = MIN_SIZE;
       let dynamicHeight = MIN_SIZE;
       let rectX = initialPos.x;
@@ -114,6 +128,20 @@ export default function Home() {
           height = Math.max(MIN_SIZE, Math.abs(y - initialPos.y));
           rectY = y < initialPos.y ? initialPos.y - height : initialPos.y;
         }
+        console.log(
+          "Xi:",
+          x,
+          " Yi:",
+          y,
+          " w:",
+          width,
+          " h:",
+          height,
+          " DX:",
+          directionX,
+          " DY:",
+          directionY
+        );
 
         setRectangles((prevRects) => [
           ...prevRects,
@@ -160,7 +188,7 @@ export default function Home() {
       canvas.removeEventListener("dblclick", handleClick);
       canvas.removeEventListener("contextmenu", handleContextMenu);
     };
-  }, [isDrawing, rectangles, dragDirection]);
+  }, [isDrawing, rectangles, dragDirection, directionX, directionY]);
 
   const clearCanvas = (ctx: CanvasRenderingContext2D) => {
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
@@ -171,7 +199,7 @@ export default function Home() {
     x: number,
     y: number,
     width: number,
-    height: number,
+    height: number
   ) => {
     ctx.beginPath();
     ctx.moveTo(x - space, y);
@@ -193,7 +221,7 @@ export default function Home() {
   const detectTextClick = (
     ctx: CanvasRenderingContext2D,
     x: number,
-    y: number,
+    y: number
   ) => {
     rectangles.forEach((rect, index) => {
       const heightTextX = rect.x + rect.width - space + 5;
@@ -266,8 +294,8 @@ export default function Home() {
                 x: modalContent.x,
                 y: modalContent.y,
               }
-            : rect,
-        ),
+            : rect
+        )
       );
     }
     setModalVisible(false);
@@ -300,7 +328,7 @@ export default function Home() {
   const handleDelete = () => {
     if (contextMenuContent.id !== -1) {
       setRectangles((prevRects) =>
-        prevRects.filter((_, index) => index !== contextMenuContent.id),
+        prevRects.filter((_, index) => index !== contextMenuContent.id)
       );
       setContextMenuVisible(false);
     }
@@ -423,139 +451,6 @@ export default function Home() {
           </ul>
         </div>
       )}
-
-      {/* Context Controls */}
-      <div
-        className="fixed bottom-4 right-4 flex items-center justify-center"
-        style={{
-          width: "150px",
-          height: "150px",
-          position: "fixed",
-          bottom: "20px",
-          right: "20px",
-          zIndex: 1000,
-        }}
-      >
-        {/* Botón Abajo */}
-        <div
-          className="absolute bg-gray-400 opacity-60 rounded-full"
-          style={{
-            bottom: "0",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "60px",
-            height: "60px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="white"
-            className="h-8 w-8"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M19.5 8.25L12 15.75 4.5 8.25"
-            />
-          </svg>
-        </div>
-
-        {/* Botón Izquierda */}
-        <div
-          className="absolute bg-gray-400 opacity-60 rounded-full"
-          style={{
-            left: "0",
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: "60px",
-            height: "60px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="white"
-            className="h-8 w-8"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 19.5l-7.5-7.5 7.5-7.5"
-            />
-          </svg>
-        </div>
-
-        {/* Botón Arriba */}
-        <div
-          className="absolute bg-gray-400 opacity-60 rounded-full"
-          style={{
-            top: "0",
-            left: "50%",
-            transform: "translateX(-50%)",
-            width: "60px",
-            height: "60px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="white"
-            className="h-8 w-8"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M4.5 15.75l7.5-7.5 7.5 7.5"
-            />
-          </svg>
-        </div>
-
-        {/* Botón Derecha */}
-        <div
-          className="absolute bg-gray-400 opacity-60 rounded-full"
-          style={{
-            right: "0",
-            top: "50%",
-            transform: "translateY(-50%)",
-            width: "60px",
-            height: "60px",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth="1.5"
-            stroke="white"
-            className="h-8 w-8"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M8.25 4.5l7.5 7.5-7.5 7.5"
-            />
-          </svg>
-        </div>
-      </div>
     </main>
   );
 }
