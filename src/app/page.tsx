@@ -82,17 +82,8 @@ export default function Home() {
         }
       }
 
-      if (x < initialPos.x) {
-        setDirectionX(1);
-      } else {
-        setDirectionX(0);
-      }
-
-      if (y < initialPos.y) {
-        setDirectionY(1);
-      } else {
-        setDirectionY(0);
-      }
+      setDirectionX(0);
+      setDirectionY(0);
 
       let dynamicWidth = MIN_SIZE;
       let dynamicHeight = MIN_SIZE;
@@ -102,9 +93,11 @@ export default function Home() {
       if (dragDirection === "horizontal") {
         dynamicWidth = Math.max(MIN_SIZE, Math.abs(x - initialPos.x));
         rectX = x < initialPos.x ? initialPos.x - dynamicWidth : initialPos.x;
+        if (initialPos.x > x) setDirectionX(1);
       } else if (dragDirection === "vertical") {
         dynamicHeight = Math.max(MIN_SIZE, Math.abs(y - initialPos.y));
         rectY = y < initialPos.y ? initialPos.y - dynamicHeight : initialPos.y;
+        if (initialPos.y > y) setDirectionY(1);
       }
 
       drawAllRectangles();
@@ -120,27 +113,39 @@ export default function Home() {
         let height = MIN_SIZE;
         let rectX = initialPos.x;
         let rectY = initialPos.y;
+        let nextPos = { x: 0, y: 0 };
 
         if (dragDirection === "horizontal") {
           width = Math.max(MIN_SIZE, Math.abs(x - initialPos.x));
           rectX = x < initialPos.x ? initialPos.x - width : initialPos.x;
+          nextPos.x = width + initialPos.x;
+          nextPos.y = rectY;
+          if (directionX === 1) {
+            nextPos.x = initialPos.x - width - MIN_SIZE;
+            if (directionY === 1) nextPos.y += MIN_SIZE; //SI VA PARA LA ARRIBA
+          }
         } else if (dragDirection === "vertical") {
           height = Math.max(MIN_SIZE, Math.abs(y - initialPos.y));
           rectY = y < initialPos.y ? initialPos.y - height : initialPos.y;
+          nextPos.x = initialPos.x;
+          nextPos.y = height + initialPos.y;
+          if (directionY === 1) {
+            nextPos.y = initialPos.y - height - MIN_SIZE;
+            if (directionX === 1) nextPos.x += MIN_SIZE; //SI VA PARA LA IZQUIERDA
+          }
         }
+
         console.log(
-          "Xi:",
-          x,
-          " Yi:",
-          y,
-          " w:",
-          width,
-          " h:",
-          height,
+          "Posición inicial:",
+          initialPos,
+          "Posición a continuar:",
+          nextPos,
+          "Dimensiones:",
+          { width, height },
           " DX:",
           directionX,
           " DY:",
-          directionY
+          directionY,
         );
 
         setRectangles((prevRects) => [
@@ -148,6 +153,7 @@ export default function Home() {
           { x: rectX, y: rectY, width, height },
         ]);
       }
+
       setIsDrawing(false);
       hasDragged = false;
       drawAllRectangles();
@@ -199,7 +205,7 @@ export default function Home() {
     x: number,
     y: number,
     width: number,
-    height: number
+    height: number,
   ) => {
     ctx.beginPath();
     ctx.moveTo(x - space, y);
@@ -221,7 +227,7 @@ export default function Home() {
   const detectTextClick = (
     ctx: CanvasRenderingContext2D,
     x: number,
-    y: number
+    y: number,
   ) => {
     rectangles.forEach((rect, index) => {
       const heightTextX = rect.x + rect.width - space + 5;
@@ -294,8 +300,8 @@ export default function Home() {
                 x: modalContent.x,
                 y: modalContent.y,
               }
-            : rect
-        )
+            : rect,
+        ),
       );
     }
     setModalVisible(false);
@@ -328,7 +334,7 @@ export default function Home() {
   const handleDelete = () => {
     if (contextMenuContent.id !== -1) {
       setRectangles((prevRects) =>
-        prevRects.filter((_, index) => index !== contextMenuContent.id)
+        prevRects.filter((_, index) => index !== contextMenuContent.id),
       );
       setContextMenuVisible(false);
     }
