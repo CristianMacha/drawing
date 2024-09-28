@@ -7,7 +7,7 @@ export default function Home() {
   const space = 0;
 
   const [rectangles, setRectangles] = useState<
-    { x: number; y: number; width: number; height: number }[]
+    { x: number; y: number; width: number; height: number; angle: number }[]
   >([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const [initialPos, setInitialPos] = useState({ x: 0, y: 0 });
@@ -28,8 +28,10 @@ export default function Home() {
     height: MIN_SIZE,
     x: -1,
     y: -1,
+    angle: 0,
   });
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
   let hasDragged = false;
   const [dragDirection, setDragDirection] = useState<
     "horizontal" | "vertical" | null
@@ -62,7 +64,8 @@ export default function Home() {
       if (e.button !== 0) return;
 
       const { x, y } = getMousePos(e);
-      setInitialPos({ x, y });
+      // if (!rectangles[0]) setInitialPos({ x, y }); //dibujo continuo
+      setInitialPos({ x, y }); // dibujo a mano libre
       setIsDrawing(true);
       hasDragged = false;
       setDragDirection(null);
@@ -101,7 +104,7 @@ export default function Home() {
       }
 
       drawAllRectangles();
-      drawRectangle(ctx, rectX, rectY, dynamicWidth, dynamicHeight);
+      drawRectangle(ctx, rectX, rectY, dynamicWidth, dynamicHeight, 0);
     };
 
     const stopDrawing = (e: MouseEvent) => {
@@ -150,8 +153,9 @@ export default function Home() {
 
         setRectangles((prevRects) => [
           ...prevRects,
-          { x: rectX, y: rectY, width, height },
+          { x: rectX, y: rectY, width, height, angle: 0 },
         ]);
+        // setInitialPos(nextPos); // punto a continuacion para grafico continuo
       }
 
       setIsDrawing(false);
@@ -206,21 +210,23 @@ export default function Home() {
     y: number,
     width: number,
     height: number,
+    angle: number,
   ) => {
-    ctx.beginPath();
-    ctx.moveTo(x - space, y);
-    ctx.lineTo(x + width - space, y);
-    ctx.lineTo(x + width - space, y + height);
-    ctx.lineTo(x - space, y + height);
-    ctx.lineTo(x - space, y);
-    ctx.stroke();
-    ctx.fillText(`${height} in`, x + width - space + 5, y + height / 2);
+    ctx.save();
+    ctx.translate(x + width / 2, y + height / 2);
+    ctx.rotate((angle * Math.PI) / 180);
+    ctx.translate(-(width / 2), -(height / 2));
+    ctx.fillStyle = "rgba(42, 140, 42, 0.6)";
+    ctx.fillRect(0, 0, width, height);
+    ctx.restore();
+
+    ctx.fillText(`${height} in`, x + width + 5, y + height / 2);
     ctx.fillText(`${width} in`, x - space / 2, y - 5);
   };
 
   const drawRectangles = (ctx: CanvasRenderingContext2D) => {
     rectangles.forEach((rect) => {
-      drawRectangle(ctx, rect.x, rect.y, rect.width, rect.height);
+      drawRectangle(ctx, rect.x, rect.y, rect.width, rect.height, rect.angle);
     });
   };
 
@@ -247,6 +253,7 @@ export default function Home() {
           height: rect.height,
           x: rect.x,
           y: rect.y,
+          angle: rect.angle,
         });
         setModalVisible(true);
       }
@@ -263,6 +270,7 @@ export default function Home() {
           height: rect.height,
           x: rect.x,
           y: rect.y,
+          angle: rect.angle,
         });
         setModalVisible(true);
       }
@@ -299,6 +307,7 @@ export default function Home() {
                 height: modalContent.height,
                 x: modalContent.x,
                 y: modalContent.y,
+                angle: modalContent.angle,
               }
             : rect,
         ),
@@ -325,6 +334,7 @@ export default function Home() {
         height: rect.height,
         x: rect.x,
         y: rect.y,
+        angle: rect.angle,
       });
       setContextMenuVisible(false);
       setModalVisible(true);
@@ -358,50 +368,62 @@ export default function Home() {
           >
             <h2 className="text-xl font-bold mb-4">Edit Rectangle</h2>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Pos. X:
+              <label className="block text-sm font-medium text-gray-700 ">
+                <span className="w-1/2">Pos. X:</span>
                 <input
                   type="number"
                   name="x"
                   value={modalContent.x}
                   onChange={handleInputChange}
-                  className="ml-2 border border-gray-300 p-1"
+                  className="ml-4 border border-gray-300 p-1"
                 />
               </label>
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Pos. Y:
+              <label className="block text-sm font-medium text-gray-700 ">
+                <span className="w-1/2">Pos. Y:</span>
                 <input
                   type="number"
                   name="y"
                   value={modalContent.y}
                   onChange={handleInputChange}
-                  className="ml-2 border border-gray-300 p-1"
+                  className="ml-4 border border-gray-300 p-1"
                 />
               </label>
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Width:
+              <label className="block text-sm font-medium text-gray-700 ">
+                <span className="w-1/2">Width:</span>
                 <input
                   type="number"
                   name="width"
                   value={modalContent.width}
                   onChange={handleInputChange}
-                  className="ml-2 border border-gray-300 p-1"
+                  className="ml-4 border border-gray-300 p-1"
                 />
               </label>
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700">
-                Height:
+              <label className="block text-sm font-medium text-gray-700 ">
+                <span className="w-1/2">Height:</span>
                 <input
                   type="number"
                   name="height"
                   value={modalContent.height}
                   onChange={handleInputChange}
-                  className="ml-2 border border-gray-300 p-1"
+                  className="ml-4 border border-gray-300 p-1"
+                />
+              </label>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 ">
+                <span className="w-1/2">Angle:</span>
+                <input
+                  type="number"
+                  name="angle"
+                  value={modalContent.angle}
+                  onChange={handleInputChange}
+                  className="ml-4 border border-gray-300 p-1"
                 />
               </label>
             </div>
